@@ -1,0 +1,47 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  /* Color: warm bakery palette, sampled from the brand mark and interiors */
+  --color-cream-50: #fffdfa;
+  --color-cream-100: #f8f1e7;
+  --color-cream-200: #efe3d1;
+
+  --color-cocoa-900: #2b1d14;
+  --color-cocoa-800: #3f2c1e;
+  --color-cocoa-700: #5a3d27;
+  --color-cocoa-600: #7a5334;
+  --color-cocoa-500: #96623a;
+
+  --color-caramel-500: #a9713d;
+  --color-caramel-600: #935f30;
+  --color-caramel-400: #c28d55;
+
+  --color-sage-500: #6b7a63;
+  --color-sage-600: #566350;
+
+  --color-berry-500: #a3402f;
+
+  /* Type */
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Radius */
+  --radius-card: 1.5rem;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-cream-100);
+  color: var(--color-cocoa-900);
+}
+
+::selection {
+  background-color: var(--color-caramel-400);
+  color: var(--color-cream-50);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-caramel-500);
+  outline-offset: 2px;
+}
