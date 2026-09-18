@@ -18,8 +18,22 @@ class Order extends Model
         'cancelled',
     ];
 
+    /**
+     * Forward-only status ladder. An order can only move to one of the
+     * listed statuses for its current status — it can never go backwards
+     * (e.g. "preparing" can never return to "pending").
+     */
+    public const STATUS_TRANSITIONS = [
+        'pending' => ['preparing', 'cancelled'],
+        'preparing' => ['out_for_delivery', 'cancelled'],
+        'out_for_delivery' => ['completed'],
+        'completed' => [],
+        'cancelled' => [],
+    ];
+
     protected $fillable = [
         'customer_name',
+        'customer_email',
         'customer_phone',
         'delivery_address',
         'delivery_date',
@@ -46,5 +60,20 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(OrderStatusHistory::class)->latest('id');
+    }
+
+    public function canTransitionTo(string $status): bool
+    {
+        return in_array($status, static::STATUS_TRANSITIONS[$this->status] ?? [], true);
+    }
+
+    public function logStatus(string $status): void
+    {
+        $this->statusHistories()->create(['status' => $status]);
     }
 }

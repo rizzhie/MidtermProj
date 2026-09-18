@@ -12,6 +12,7 @@ class OrderResource extends JsonResource
         return [
             'id' => $this->id,
             'customer_name' => $this->customer_name,
+            'customer_email' => $this->customer_email,
             'customer_phone' => $this->customer_phone,
             'delivery_address' => $this->delivery_address,
             'delivery_date' => $this->delivery_date?->toDateString(),
@@ -23,6 +24,7 @@ class OrderResource extends JsonResource
             'subtotal' => (float) $this->subtotal,
             'total' => (float) $this->total,
             'status' => $this->status,
+            'status_history' => OrderStatusHistoryResource::collection($this->whenLoaded('statusHistories')),
             'items' => OrderItemResource::collection($this->whenLoaded('items')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

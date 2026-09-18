@@ -18,7 +18,7 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Order::query()->with('items')->latest();
+        $query = Order::query()->with(['items', 'statusHistories'])->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->query('status'));
@@ -70,6 +70,7 @@ class OrderController extends Controller
 
             $order = Order::create([
                 'customer_name' => $data['customer_name'],
+                'customer_email' => $data['customer_email'] ?? null,
                 'customer_phone' => $data['customer_phone'],
                 'delivery_address' => $data['delivery_address'],
                 'delivery_date' => $data['delivery_date'] ?? null,
@@ -84,6 +85,7 @@ class OrderController extends Controller
             ]);
 
             $order->items()->createMany($lineItems);
+            $order->logStatus('pending');
 
             return $order;
         });
@@ -98,17 +100,34 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        return new OrderResource($order->load('items'));
+        return new OrderResource($order->load(['items', 'statusHistories']));
     }
 
     /**
      * Admin: update an order's fulfillment status.
+     *
+     * Status follows a one-way progress (pending → preparing →
+     * out_for_delivery → completed). An order can never go backwards,
+     * and every change is time-logged in order_status_histories.
      */
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order)
     {
-        $order->update(['status' => $request->validated()['status']]);
+        $status = $request->validated()['status'];
 
-        return new OrderResource($order->load('items'));
+        if (! $order->canTransitionTo($status)) {
+            return response()->json([
+                'message' => "Order #{$order->id} is currently \"{$order->status}\" and can only move forward (to: "
+                    . implode(', ', $order::STATUS_TRANSITIONS[$order->status])
+                    . '). It cannot be changed back to an earlier stage.',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($order, $status) {
+            $order->update(['status' => $status]);
+            $order->logStatus($status);
+        });
+
+        return new OrderResource($order->load(['items', 'statusHistories']));
     }
 
     /**

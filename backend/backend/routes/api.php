@@ -22,6 +22,19 @@ Route::get('/products/{product}', [ProductController::class, 'show']);
 Route::post('/orders', [OrderController::class, 'store']);
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated-storefront endpoints
+|--------------------------------------------------------------------------
+| Any signed-in customer (or admin) can read and update their own profile.
+*/
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::patch('/profile', [AuthController::class, 'updateProfile']);
+});
 
 /*
 |--------------------------------------------------------------------------
